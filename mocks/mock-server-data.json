@@ -1,0 +1,58 @@
+{
+  "api": {
+    "titles": [
+      "Трехзвёздночный отель",
+      "Хостел",
+      "Квартира в центре",
+      "Дом на окраине",
+      "Пентхаус",
+      "Гараж"
+    ],
+    "descriptions": [
+      "Специально для туристов. Всё включено. Удобное расположение.",
+      "Комфортное место для ночёвки. Удобные матрасы.",
+      "Все необходимые удобства. Хорошее расположение для туристов.",
+      "Много места. Вмещает много людей.",
+      "Элитное жилище. Нефтяные сливки и золотые слитки.",
+      "Минимальные условия для проживания. Самый бюджетный вариант",
+      "Расположено в культурном центре города. Рядом есть все необходимые магазины."
+    ],
+    "users": [
+      "Ivan",
+      "Dmitriy",
+      "Yuri",
+      "Alex",
+      "BEST HOTEL"
+    ],
+    "emails": [
+      "hotel@best.local",
+      "joy@now.local",
+      "hello@world.local",
+      "coca@cola.local",
+      "skolko@mojno.local",
+      "live@love.local"
+    ],
+    "adImages": [
+      "house.jpg",
+      "garage.jpg",
+      "pentHouse.jpg",
+      "apartments.jpg",
+      "hotel.jpg",
+      "hostel.jpg"
+    ],
+    "avatars": [
+      "user.jpg",
+      "photo.jpg",
+      "awesome-avatar.jpg",
+      "roland.jpg",
+      "smite.jpg",
+      "coffee.jpg"
+    ],
+    "passwords": [
+      "123456",
+      "qwerty",
+      "abcdefghijk",
+      "1234567890"
+    ]
+  }
+}
