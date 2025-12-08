@@ -5,7 +5,7 @@ export function isUserType(str: string): UserType | undefined {
   const foundStr = userTypes.find((val) => val === str);
 
   if (!foundStr) {
-    return;
+    return undefined;
   }
 
   return foundStr;

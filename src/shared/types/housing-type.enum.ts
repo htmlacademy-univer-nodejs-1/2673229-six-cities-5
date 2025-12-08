@@ -5,7 +5,7 @@ export function isHousingType(str: string): HousingType | undefined {
   const foundStr = housingTypes.find((val) => val === str);
 
   if (!foundStr) {
-    return;
+    return undefined;
   }
 
   return foundStr;

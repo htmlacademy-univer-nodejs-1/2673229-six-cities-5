@@ -19,11 +19,10 @@ export function createOffer(offerData: string): Offer {
     commentsCount,
     cords
   ] = offerData.replace('\n','').split('\t');
-  const [firstname, email, password, typeRaw, avatarPath] = userStr.split(' ');
+  const [firstname, email, typeRaw, avatarPath] = userStr.split(' ');
   const user: User = {
     firstname,
     email,
-    password,
     type: isUserType(typeRaw) ?? undefined,
     avatarPath
   };
@@ -31,7 +30,7 @@ export function createOffer(offerData: string): Offer {
   return {
     title,
     description,
-    publishDate: new Date(publishDate.split('.').reverse().join('-')),
+    publishDate: new Date(publishDate.trim()),
     city: isCityName(city) ?? 'Amsterdam',
     adImage,
     images: images.split(' ') as [string, string, string, string, string, string],

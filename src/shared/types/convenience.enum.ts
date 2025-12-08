@@ -13,7 +13,7 @@ export function isConvenience(str: string): Convenience | undefined {
   const foundStr = conveniences.find((val) => val === str);
 
   if (!foundStr) {
-    return;
+    return undefined;
   }
 
   return foundStr;

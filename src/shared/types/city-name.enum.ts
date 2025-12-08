@@ -12,7 +12,7 @@ export function isCityName(str: string): CityName | undefined {
   const foundStr = cityNames.find((val) => val === str);
 
   if (!foundStr) {
-    return;
+    return undefined;
   }
 
   return foundStr;

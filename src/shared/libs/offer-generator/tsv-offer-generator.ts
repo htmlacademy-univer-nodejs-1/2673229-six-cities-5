@@ -37,11 +37,10 @@ export class TSVOfferGenerator implements OfferGenerator {
 
     const userName = getRandomItem(this.mockData.users);
     const email = getRandomItem(this.mockData.emails);
-    const password = getRandomItem(this.mockData.passwords);
     const userType = getRandomItem([...userTypes]);
     const avatar = getRandomItem(this.mockData.avatars);
 
-    const user = [userName, email, password, userType, avatar].join(' ');
+    const user = [userName, email, userType, avatar].join(' ');
 
     const commentsCount = generateRandomValue(MIN_COMMENTS, MAX_COMMENTS).toString();
 
