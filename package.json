@@ -21,6 +21,8 @@
   "devDependencies": {
     "@types/convict": "6.1.6",
     "@types/convict-format-with-validator": "6.0.5",
+    "@types/mime-types": "^3.0.1",
+    "@types/multer": "^2.0.0",
     "@types/node": "^18.16.3",
     "@typescript-eslint/eslint-plugin": "5.46.0",
     "@typescript-eslint/parser": "5.46.0",
@@ -55,8 +57,10 @@
     "express-async-handler": "^1.2.0",
     "http-status-codes": "^2.3.0",
     "inversify": "7.10.2",
+    "mime-types": "^3.0.2",
     "mongo-express": "^0.30.54",
     "mongoose": "^7.6.1",
+    "multer": "^2.0.2",
     "pino": "10.0.0",
     "reflect-metadata": "0.2.2"
   }
