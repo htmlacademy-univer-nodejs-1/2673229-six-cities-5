@@ -2,6 +2,7 @@ import { UserService } from './user-service.interface.js';
 import { DocumentType, types } from '@typegoose/typegoose';
 import { UserEntity } from './user.entity.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { UpdateUserDto} from './dto/update-user.dto.js';
 import { inject, injectable } from 'inversify';
 import { Component } from '../../types/index.js';
 import { Logger } from '../../libs/logger/index.js';
@@ -35,5 +36,30 @@ export class DefaultUserService implements UserService {
     }
 
     return this.create(dto, salt);
+  }
+
+  public async findById(userId: string): Promise<UserEntity | null> {
+    return this.userModel.findById(userId).exec();
+  }
+
+  public async updateById(userId: string, dto: UpdateUserDto): Promise<UserEntity | null> {
+    return this.userModel.findByIdAndUpdate(userId, dto, { new: true }).exec();
+  }
+
+  public async addToFavorites(userId: string, offerId: string): Promise<void> {
+    await this.userModel.findByIdAndUpdate(userId, {
+      $addToSet: { favorites: offerId }
+    }).exec();
+  }
+
+  public async removeFromFavorites(userId: string, offerId: string): Promise<void> {
+    await this.userModel.findByIdAndUpdate(userId, {
+      $pull: { favorites: offerId }
+    }).exec();
+  }
+
+  public async findFavorites(userId: string): Promise<string[]> {
+    const user = await this.userModel.findById(userId).select('favorites').exec();
+    return user?.favorites || [];
   }
 }
