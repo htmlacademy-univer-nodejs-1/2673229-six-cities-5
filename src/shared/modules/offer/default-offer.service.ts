@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 import { OfferService } from './offer-service.interface.js';
-import { Component } from '../../types/index.js';
+import { Component, SortType } from '../../types/index.js';
 import { Logger } from '../../libs/logger/index.js';
 import { DocumentType, types } from '@typegoose/typegoose';
 import { OfferEntity } from './offer.entity.js';
@@ -75,6 +75,24 @@ export class DefaultOfferService implements OfferService {
   public async setRating(offerId: string, rating: number): Promise<void> {
     await this.offerModel
       .findByIdAndUpdate(offerId, { rating })
+      .exec();
+  }
+
+  public async findNew(count: number): Promise<DocumentType<OfferEntity>[]> {
+    return this.offerModel
+      .find()
+      .sort({ createdAt: SortType.Down })
+      .limit(count)
+      .populate(['userId', 'categories'])
+      .exec();
+  }
+
+  public async findDiscussed(count: number): Promise<DocumentType<OfferEntity>[]> {
+    return this.offerModel
+      .find()
+      .sort({ commentCount: SortType.Down })
+      .limit(count)
+      .populate(['userId', 'categories'])
       .exec();
   }
 }

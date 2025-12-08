@@ -11,6 +11,6 @@ export function createOfferContainer() {
   return new ContainerModule((options: ContainerModuleLoadOptions) => {
     options.bind<OfferService>(Component.OfferService).to(DefaultOfferService);
     options.bind<types.ModelType<OfferEntity>>(Component.OfferModel).toConstantValue(OfferModel);
-    options.bind<Controller>(Component.OfferController).to(OfferController)
+    options.bind<Controller>(Component.OfferController).to(OfferController).inSingletonScope();
   });
 }

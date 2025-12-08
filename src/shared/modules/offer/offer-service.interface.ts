@@ -13,4 +13,6 @@ export interface OfferService {
   findPremiumByCity(city: CityName): Promise<OfferEntity[]>;
   incCommentCount(offerId: string): Promise<void>;
   setRating(offerId: string, rating: number): Promise<void>;
+  findNew(count: number): Promise<DocumentType<OfferEntity>[]>;
+  findDiscussed(count: number): Promise<DocumentType<OfferEntity>[]>;
 }
