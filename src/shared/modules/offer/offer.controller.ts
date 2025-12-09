@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
 import {
   BaseController,DocumentExistsMiddleware,
-  HttpMethod,
+  HttpMethod, PrivateRouteMiddleware,
   ValidateDtoMiddleware,
   ValidateObjectIdMiddleware,
 } from '../../libs/rest/index.js';
@@ -15,6 +15,7 @@ import { OfferRdo } from './rdo/offer.rdo.js';
 import { CreateOfferDto } from './dto/create-offer.dto.js';
 import { CommentRdo, CommentService } from '../comment/index.js';
 import { DEFAULT_DISCUSSED_OFFER_COUNT, DEFAULT_NEW_OFFER_COUNT } from './offer.constant.js';
+import { CreateOfferRequest } from './type/create-offer-request.type.js';
 
 
 @injectable()
@@ -38,12 +39,21 @@ export class OfferController extends BaseController{
             ]
         });
         this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index });
-        this.addRoute({ path: '/', method: HttpMethod.Post, handler: this.create, middlewares: [new ValidateDtoMiddleware(CreateOfferDto)] });
+        this.addRoute({ 
+            path: '/',
+            method: HttpMethod.Post, 
+            handler: this.create, 
+            middlewares: [
+                new ValidateDtoMiddleware(CreateOfferDto),
+                new PrivateRouteMiddleware(),
+            ] 
+        });
         this.addRoute({ 
             path: '/:offerId', 
             method: HttpMethod.Delete, 
             handler: this.delete as any,       
             middlewares: [
+                new PrivateRouteMiddleware(),
                 new ValidateObjectIdMiddleware('offerId'),
                 new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
             ]
@@ -52,7 +62,9 @@ export class OfferController extends BaseController{
             path: '/:offerId',
             method: HttpMethod.Patch,
             handler: this.update as any,
-            middlewares: [new ValidateObjectIdMiddleware('offerId'),
+            middlewares: [
+                new PrivateRouteMiddleware(),
+                new ValidateObjectIdMiddleware('offerId'),
                 new ValidateDtoMiddleware(UpdateOfferDto),
                 new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
             ]
@@ -76,12 +88,10 @@ export class OfferController extends BaseController{
         this.ok(res, responseData);
     }
 
-    public async create(
-        { body }: Request<Record<string, unknown>, Record<string, unknown>, CreateOfferDto>,
-        res: Response,
-    ): Promise<void> {
-        const result = await this.offerService.create(body);
-        this.created(res, result);
+    public async create({ body, tokenPayload }: CreateOfferRequest, res: Response): Promise<void> {
+        const result = await this.offerService.create({ ...body, userId: tokenPayload.id });
+        const offer = await this.offerService.findById(result.id);
+        this.created(res, fillDTO(OfferRdo, offer));
     }
 
     public async show({ params }: Request<{offerId: string}>, res: Response): Promise<void> {

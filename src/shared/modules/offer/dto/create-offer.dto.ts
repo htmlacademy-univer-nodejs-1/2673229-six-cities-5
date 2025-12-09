@@ -61,7 +61,6 @@ export class CreateOfferDto {
   @IsEnum(conveniences, { each: true, message: 'each amenity must be a valid amenity type' })
   public conveniences!: Convenience[];
 
-  @IsString({ message: 'userId is required' })
   public userId: string;
 
   @IsNumber({}, { message: 'commentsCount must be a number' })
