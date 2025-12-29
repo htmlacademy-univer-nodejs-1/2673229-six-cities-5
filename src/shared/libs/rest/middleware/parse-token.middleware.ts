@@ -25,6 +25,10 @@ export class ParseTokenMiddleware implements Middleware {
     }
 
     const [, token] = authorizationHeader;
+    
+    if (!token) {
+      return next();
+    }
 
     try {
       const { payload } = await jwtVerify(token, createSecretKey(this.jwtSecret, 'utf-8'));
@@ -34,7 +38,6 @@ export class ParseTokenMiddleware implements Middleware {
         return next();
       }
     } catch {
-
       return next(new HttpError(
         StatusCodes.UNAUTHORIZED,
         'Invalid token',

@@ -1,6 +1,5 @@
 import { HousingType, CityName, Convenience, Location, cityNames, housingTypes, conveniences } from '../../../types/index.js';
 import { IsArray, IsBoolean, IsDateString, IsEnum, IsNumber, IsObject, IsString, Length, Max, Min, ArrayMinSize, ArrayMaxSize } from 'class-validator';
-import { Transform } from 'class-transformer';
 
 
 export class CreateOfferDto {
@@ -13,8 +12,7 @@ export class CreateOfferDto {
   public description!: string;
 
   @IsDateString({}, { message: 'publishDate must be a valid date string' })
-  @Transform(({ value }) => new Date(value))
-  public publishDate!: Date;
+  public publishDate!: string;
 
   @IsEnum(cityNames, { message: 'city must be one of the valid cities' })
   public city!: CityName;

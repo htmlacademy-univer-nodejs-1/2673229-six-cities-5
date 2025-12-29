@@ -62,4 +62,8 @@ export class DefaultUserService implements UserService {
     const user = await this.userModel.findById(userId).select('favorites').exec();
     return user?.favorites || [];
   }
+
+  public async exists(documentId: string): Promise<boolean> {
+    return (await this.userModel.exists({ _id: documentId })) !== null;
+  }
 }

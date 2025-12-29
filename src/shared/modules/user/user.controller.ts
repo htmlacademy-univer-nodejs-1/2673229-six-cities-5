@@ -7,6 +7,8 @@ import {
   HttpMethod, UploadFileMiddleware,
   ValidateDtoMiddleware,
   ValidateObjectIdMiddleware,
+  PrivateRouteMiddleware,
+  DocumentExistsMiddleware,
 } from '../../libs/rest/index.js';
 import { Logger } from '../../libs/logger/index.js';
 import { Component } from '../../types/index.js';
@@ -17,8 +19,11 @@ import { fillDTO } from '../../helpers/index.js';
 import { UserRdo } from './rdo/user.rdo.js';
 import { LoginUserRequest } from './login-user-request.type.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { LoginUserDto } from './dto/login-user.dto.js';
 import { AuthService } from '../auth/index.js';
 import { LoggedUserRdo } from './rdo/logged-user.rdo.js';
+import { OfferService } from '../offer/index.js';
+import { OfferRdo } from '../offer/rdo/offer.rdo.js';
 
 
 @injectable()
@@ -28,6 +33,7 @@ export class UserController extends BaseController {
     @inject(Component.UserService) private readonly userService: UserService,
     @inject(Component.Config) private readonly configService: Config<RestSchema>,
     @inject(Component.AuthService) private readonly authService: AuthService,
+    @inject(Component.OfferService) private readonly offerService: OfferService,
   ) {
     super(logger);
     this.logger.info('Register routes for UserController…');
@@ -40,13 +46,64 @@ export class UserController extends BaseController {
     });
     this.addRoute({
       path: '/login',
+      method: HttpMethod.Post,
+      handler: this.login,
+      middlewares: [new ValidateDtoMiddleware(LoginUserDto)]
+    });
+    this.addRoute({
+      path: '/login',
       method: HttpMethod.Get,
       handler: this.checkAuthenticate,
+      middlewares: [new PrivateRouteMiddleware()]
+    });
+    this.addRoute({
+      path: '/logout',
+      method: HttpMethod.Delete,
+      handler: this.logout,
+      middlewares: [new PrivateRouteMiddleware()]
+    });
+    this.addRoute({
+      path: '/:userId',
+      method: HttpMethod.Get,
+      handler: this.show,
+      middlewares: [
+        new ValidateObjectIdMiddleware('userId'),
+        new DocumentExistsMiddleware(this.userService, 'User', 'userId')
+      ]
+    });
+    this.addRoute({
+      path: '/:userId/favorites',
+      method: HttpMethod.Get,
+      handler: this.getFavorites,
+      middlewares: [
+        new PrivateRouteMiddleware(),
+        new ValidateObjectIdMiddleware('userId')
+      ]
+    });
+    this.addRoute({
+      path: '/:userId/favorites',
+      method: HttpMethod.Post,
+      handler: this.addToFavorites,
+      middlewares: [
+        new PrivateRouteMiddleware(),
+        new ValidateObjectIdMiddleware('userId')
+      ]
+    });
+    this.addRoute({
+      path: '/:userId/favorites/:offerId',
+      method: HttpMethod.Delete,
+      handler: this.removeFromFavorites,
+      middlewares: [
+        new PrivateRouteMiddleware(),
+        new ValidateObjectIdMiddleware('userId'),
+        new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId')
+      ]
     });
     this.addRoute({
       path: '/:userId/avatar',
       method: HttpMethod.Post,
-      handler: this.uploadAvatar as any,
+      handler: this.uploadAvatar,
       middlewares: [
         new ValidateObjectIdMiddleware('userId'),
         new UploadFileMiddleware(this.configService.get('UPLOAD_DIRECTORY'), 'avatar'),
@@ -91,8 +148,15 @@ export class UserController extends BaseController {
     });
   }
 
-  public async checkAuthenticate({ tokenPayload: { email }}: Request, res: Response) {
-    const foundedUser = await this.userService.findByEmail(email);
+  public async checkAuthenticate({ tokenPayload }: Request, res: Response) {
+    if (!tokenPayload) {
+      throw new HttpError(
+        StatusCodes.UNAUTHORIZED,
+        'Unauthorized',
+        'UserController'
+      );
+    }
+    const foundedUser = await this.userService.findByEmail(tokenPayload.email);
 
     if (! foundedUser) {
       throw new HttpError(
@@ -103,5 +167,76 @@ export class UserController extends BaseController {
     }
 
     this.ok(res, fillDTO(LoggedUserRdo, foundedUser));
+  }
+
+  public async logout(_req: Request, res: Response): Promise<void> {
+    this.noContent(res, null);
+  }
+
+  public async show({ params }: Request<{ userId: string }>, res: Response): Promise<void> {
+    const { userId } = params;
+    const user = await this.userService.findById(userId);
+
+    if (!user) {
+      throw new HttpError(
+        StatusCodes.NOT_FOUND,
+        `User with id ${userId} not found.`,
+        'UserController'
+      );
+    }
+
+    this.ok(res, fillDTO(UserRdo, user));
+  }
+
+  public async getFavorites({ params, tokenPayload }: Request<{ userId: string }>, res: Response): Promise<void> {
+    const { userId } = params;
+
+    if (userId !== tokenPayload.id) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'You can only view your own favorites',
+        'UserController'
+      );
+    }
+
+    const favoriteIds = await this.userService.findFavorites(userId);
+    const favorites = await this.offerService.findByIds(favoriteIds);
+    this.ok(res, fillDTO(OfferRdo, favorites));
+  }
+
+  public async addToFavorites(
+    { params, body, tokenPayload }: Request<{ userId: string }, Record<string, unknown>, { offerId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const { userId } = params;
+
+    if (userId !== tokenPayload.id) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'You can only modify your own favorites',
+        'UserController'
+      );
+    }
+
+    await this.userService.addToFavorites(userId, body.offerId);
+    this.created(res, null);
+  }
+
+  public async removeFromFavorites(
+    { params, tokenPayload }: Request<{ userId: string; offerId: string }>,
+    res: Response,
+  ): Promise<void> {
+    const { userId, offerId } = params;
+
+    if (userId !== tokenPayload.id) {
+      throw new HttpError(
+        StatusCodes.FORBIDDEN,
+        'You can only modify your own favorites',
+        'UserController'
+      );
+    }
+
+    await this.userService.removeFromFavorites(userId, offerId);
+    this.noContent(res, null);
   }
 }

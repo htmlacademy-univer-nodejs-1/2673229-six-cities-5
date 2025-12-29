@@ -18,6 +18,26 @@ export class RestConfig implements Config<RestSchema> {
       throw new Error('Can\'t read .env file. Perhaps the file does not exists.');
     }
 
+    const requiredEnv: Array<keyof RestSchema> = [
+      'PORT',
+      'SALT',
+      'DB_HOST',
+      'DB_USER',
+      'DB_PASSWORD',
+      'DB_PORT',
+      'DB_NAME',
+      'UPLOAD_DIRECTORY',
+      'JWT_SECRET',
+    ];
+    const missingEnv = requiredEnv.filter((key) => {
+      const value = process.env[key];
+      return value === undefined || value.trim() === '';
+    });
+
+    if (missingEnv.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingEnv.join(', ')}`);
+    }
+
     configRestSchema.load({});
     configRestSchema.validate({ allowed: 'strict', output: this.logger.info });
 

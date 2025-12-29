@@ -7,7 +7,6 @@ import { OfferEntity } from './offer.entity.js';
 import { CreateOfferDto } from './dto/create-offer.dto.js';
 import { UpdateOfferDto } from './dto/update-offer.dto.js';
 import { CityName } from '../../types/index.js';
-import {DEFAULT_OFFER_COUNT} from './offer.constant.js';
 
 @injectable()
 export class DefaultOfferService implements OfferService {
@@ -23,23 +22,30 @@ export class DefaultOfferService implements OfferService {
     return result;
   }
 
-  public async findAll(): Promise<OfferEntity[]> {
+  public async findAll(limit: number = 60): Promise<OfferEntity[]> {
     return this.offerModel
       .find()
-      .limit(DEFAULT_OFFER_COUNT)
+      .limit(limit)
       .sort({ publishDate: -1 })
-      .populate('user')
+      .populate('userId')
+      .exec();
+  }
+
+  public async findByIds(offerIds: string[]): Promise<DocumentType<OfferEntity>[]> {
+    return this.offerModel
+      .find({ _id: { $in: offerIds } })
+      .populate('userId')
       .exec();
   }
 
   public async findById(offerId: string): Promise<DocumentType<OfferEntity> | null> {
-    return this.offerModel.findById(offerId).exec();
+    return this.offerModel.findById(offerId).populate('userId').exec();
   }
 
   public async updateById(offerId: string, dto: UpdateOfferDto): Promise<OfferEntity | null> {
     const result = await this.offerModel
       .findByIdAndUpdate(offerId, dto, { new: true })
-      .populate('user')
+      .populate('userId')
       .exec();
 
     if (result) {
@@ -57,18 +63,18 @@ export class DefaultOfferService implements OfferService {
   }
 
   public async incCommentCount(offerId: string): Promise<void> {
-    this.offerModel
+    await this.offerModel
       .findByIdAndUpdate(offerId, {'$inc': {
-        commentCount: 1,
+        commentsCount: 1,
       }}).exec();
   }
 
   public async findPremiumByCity(city: CityName): Promise<OfferEntity[]> {
     return this.offerModel
       .find({ city, isPremium: true })
-      .limit(DEFAULT_OFFER_COUNT)
+      .limit(3)
       .sort({ publishDate: -1 })
-      .populate('user')
+      .populate('userId')
       .exec();
   }
 
@@ -90,7 +96,7 @@ export class DefaultOfferService implements OfferService {
   public async findDiscussed(count: number): Promise<DocumentType<OfferEntity>[]> {
     return this.offerModel
       .find()
-      .sort({ commentCount: SortType.Down })
+      .sort({ commentsCount: SortType.Down })
       .limit(count)
       .populate(['userId', 'categories'])
       .exec();

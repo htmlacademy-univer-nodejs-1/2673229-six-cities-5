@@ -1,4 +1,4 @@
-import { IsNumber, IsString, Length, Max, Min } from 'class-validator';
+import { IsNumber, IsString, Length, Max, Min, IsOptional } from 'class-validator';
 
 export class CreateCommentDto {
   @IsString({ message: 'text is required' })
@@ -10,8 +10,11 @@ export class CreateCommentDto {
   @Max(5, { message: 'rating must be at most 5' })
   public rating!: number;
   
-  public offerId: string;
+  @IsOptional()
+  @IsString({ message: 'offerId must be a string' })
+  public offerId?: string;
 
-  @IsString({ message: 'authorId is required' })
-  public userId: string;
+  @IsOptional()
+  @IsString({ message: 'userId must be a string' })
+  public userId?: string;
 }

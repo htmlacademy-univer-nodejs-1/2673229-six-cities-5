@@ -63,9 +63,6 @@ export class OfferEntity extends defaultClasses.TimeStamps {
   public conveniences: Convenience[];
 
 
-  @prop({default: 0})
-  public commentCount!: number;
-
   @prop({
     ref: () => UserEntity,
     required: true
@@ -82,7 +79,7 @@ export class OfferEntity extends defaultClasses.TimeStamps {
     super();
     this.title = offerData.title;
     this.description = offerData.description;
-    this.publishDate = offerData.publishDate ?? new Date();
+    this.publishDate = offerData.publishDate ? new Date(offerData.publishDate) : new Date();
     this.city = offerData.city;
     this.adImage = offerData.adImage;
     this.images = offerData.images;
